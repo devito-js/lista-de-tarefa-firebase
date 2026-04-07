@@ -1,0 +1,13 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // CUIDADO: Estas regras permitem que qualquer pessoa leia e escreva em seu banco de dados.
+    // Isso e util para o desenvolvimento inicial, mas deve ser alterado antes
+    // de implantar seu aplicativo em producao para evitar o uso indevido de dados.
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}

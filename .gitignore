@@ -1,0 +1,6 @@
+# Arquivo de configuracao com as chaves reais do Firebase
+public/config.js
+
+# Arquivos gerados pelo sistema operacional
+.DS_Store
+thumbs.db
