@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login com Firebase</title>
+    <link rel="stylesheet" href="login.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <main id="app-container">
+        <!-- TELA DE LOGIN -->
+        <div id="login-view">
+            <div class="card">
+                <h1>Login</h1>
+                <p>Use suas credenciais para entrar.</p>
+                <div class="input-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" placeholder="seu@email.com">
+                </div>
+                <div class="input-group">
+                    <label for="password">Senha</label>
+                    <input type="password" id="password">
+                </div>
+                <button id="login-btn">Entrar</button>
+                <p id="error-message" class="error"></p>
+            </div>
+        </div>
+
+        <!-- TELA DE BOAS-VINDAS (PÓS-LOGIN) -->
+        <div id="welcome-view" class="hidden">
+            <div class="card">
+                <h1 id="welcome-message"></h1>
+                <div class="info-box">
+                    <p><strong>Email:</strong> <span id="user-email"></span></p>
+                    <p><strong>Cor RGB do Firestore:</strong> <span id="user-color"></span></p>
+                </div>
+                <button id="logout-btn">Sair</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Carrega a configuração do Firebase -->
+    <script type="module" src="config.js"></script>
+    <!-- Carrega a lógica de autenticação -->
+    <script type="module" src="auth.js"></script>
+</body>
+</html>

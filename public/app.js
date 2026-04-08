@@ -7,15 +7,20 @@ import {
     getFirestore, 
     collection, 
     addDoc, 
-    onSnapshot, 
+    onSnapshot,
+    query,
+    orderBy,
     deleteDoc, 
     doc,
-    updateDoc 
+    updateDoc,
+    writeBatch,
+    getCount
 } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
 // Inicializa o aplicativo do Firebase com as configuracoes importadas.
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const tasksCollection = collection(db, "tarefas");
 
 // Referencias para os elementos do DOM.
 const taskInput = document.getElementById('task-input');
@@ -25,36 +30,34 @@ const notificationContainer = document.getElementById('notification-container');
 
 /**
  * Exibe uma notificacao na tela.
- * @param {string} message - A mensagem a ser exibida.
- * @param {string} type - O tipo de notificacao (success, info, danger).
  */
 const showNotification = (message, type = 'info') => {
     const notification = document.createElement('div');
     notification.className = `notification ${type}`;
     notification.textContent = message;
-
     notificationContainer.appendChild(notification);
 
-    setTimeout(() => {
-        notification.classList.add('show');
-    }, 10);
-
+    setTimeout(() => notification.classList.add('show'), 10);
     setTimeout(() => {
         notification.classList.remove('show');
-        setTimeout(() => {
-            notification.remove();
-        }, 500);
+        setTimeout(() => notification.remove(), 500);
     }, 3000);
 };
 
-// Adiciona uma nova tarefa ao Firestore.
+/**
+ * Adiciona uma nova tarefa ao Firestore.
+ */
 const addTask = async () => {
     const taskText = taskInput.value.trim();
     if (taskText) {
         try {
-            await addDoc(collection(db, "tarefas"), {
+            const snapshot = await getCount(tasksCollection);
+            const count = snapshot.data().count;
+
+            await addDoc(tasksCollection, {
                 text: taskText,
-                createdAt: new Date()
+                createdAt: new Date(),
+                order: count
             });
             taskInput.value = '';
             showNotification('Tarefa adicionada com sucesso!', 'success');
@@ -65,7 +68,9 @@ const addTask = async () => {
     }
 };
 
-// Exclui uma tarefa do Firestore.
+/**
+ * Exclui uma tarefa do Firestore.
+ */
 const deleteTask = async (id) => {
     try {
         await deleteDoc(doc(db, "tarefas", id));
@@ -76,12 +81,12 @@ const deleteTask = async (id) => {
     }
 };
 
-// Atualiza o texto de uma tarefa no Firestore.
+/**
+ * Atualiza o texto de uma tarefa no Firestore.
+ */
 const updateTask = async (id, newText) => {
     try {
-        await updateDoc(doc(db, "tarefas", id), {
-            text: newText
-        });
+        await updateDoc(doc(db, "tarefas", id), { text: newText });
         showNotification('Tarefa atualizada com sucesso!', 'info');
     } catch (error) {
         console.error("Erro ao atualizar tarefa: ", error);
@@ -89,12 +94,56 @@ const updateTask = async (id, newText) => {
     }
 };
 
-// Renderiza a lista de tarefas na tela.
+/**
+ * Atualiza a ordem das tarefas no Firestore apos o drag-and-drop.
+ */
+const updateTasksOrder = async () => {
+    const batch = writeBatch(db);
+    const taskItems = taskList.querySelectorAll('li');
+    
+    taskItems.forEach((task, index) => {
+        const taskId = task.getAttribute('data-id');
+        const taskRef = doc(db, "tarefas", taskId);
+        batch.update(taskRef, { order: index });
+    });
+
+    try {
+        await batch.commit();
+        showNotification('Ordem das tarefas atualizada!', 'info');
+    } catch (error) {
+        console.error("Erro ao atualizar a ordem: ", error);
+        showNotification('Erro ao salvar a nova ordem.', 'danger');
+    }
+};
+
+/**
+ * Inicializa a biblioteca SortableJS para drag-and-drop.
+ */
+const initializeSortable = () => {
+    new Sortable(taskList, {
+        handle: '.drag-handle', // Define o elemento que inicia o arraste
+        animation: 150,
+        chosenClass: "dragging",
+        onEnd: updateTasksOrder
+    });
+};
+
+/**
+ * Renderiza a lista de tarefas na tela.
+ */
 const renderTasks = (tasks) => {
+    const focusedElement = document.activeElement;
+    const focusedTaskId = focusedElement.closest('li')?.getAttribute('data-id');
+
     taskList.innerHTML = '';
     tasks.forEach(task => {
         const li = document.createElement('li');
         li.setAttribute('data-id', task.id);
+
+        // Cria o ícone de "alça" para arrastar
+        const dragHandle = document.createElement('div');
+        dragHandle.className = 'drag-handle';
+        dragHandle.innerHTML = '<i class="fa-solid fa-grip-vertical"></i>';
 
         const span = document.createElement('span');
         span.textContent = task.text;
@@ -123,47 +172,50 @@ const renderTasks = (tasks) => {
         buttonsDiv.appendChild(saveBtn);
         buttonsDiv.appendChild(deleteBtn);
 
+        // Adiciona os elementos na ordem correta
+        li.appendChild(dragHandle);
         li.appendChild(span);
         li.appendChild(editInput);
         li.appendChild(buttonsDiv);
         taskList.appendChild(li);
     });
+
+    if (focusedTaskId) {
+        const focusedLi = taskList.querySelector(`li[data-id="${focusedTaskId}"] .edit-input`);
+        focusedLi?.focus();
+    }
 };
 
-// Adiciona "ouvintes" de eventos.
+// --- Event Listeners ---
 addTaskBtn.addEventListener('click', addTask);
 taskInput.addEventListener('keypress', (event) => {
-    if (event.key === 'Enter') {
-        addTask();
-    }
+    if (event.key === 'Enter') addTask();
 });
 
-// Delegação de eventos para os botões de ação na lista de tarefas.
 taskList.addEventListener('click', (event) => {
-    const target = event.target.closest('button');
-    if (!target) return;
+    const button = event.target.closest('button');
+    if (!button) return;
 
-    const li = target.closest('li');
+    const li = button.closest('li');
     const taskId = li.getAttribute('data-id');
     const span = li.querySelector('span');
     const input = li.querySelector('.edit-input');
     const editBtn = li.querySelector('.edit-btn');
     const saveBtn = li.querySelector('.save-btn');
 
-    if (target.classList.contains('delete-btn')) {
+    if (button.classList.contains('delete-btn')) {
         deleteTask(taskId);
-    } else if (target.classList.contains('edit-btn')) {
+    } else if (button.classList.contains('edit-btn')) {
         span.classList.add('hidden');
         input.classList.remove('hidden');
         editBtn.classList.add('hidden');
         saveBtn.classList.remove('hidden');
         input.focus();
-    } else if (target.classList.contains('save-btn')) {
+    } else if (button.classList.contains('save-btn')) {
         const newText = input.value.trim();
-        if (newText) {
+        if (newText && newText !== span.textContent) {
             updateTask(taskId, newText);
         } else {
-            input.value = span.textContent;
             span.classList.remove('hidden');
             input.classList.add('hidden');
             editBtn.classList.remove('hidden');
@@ -172,12 +224,13 @@ taskList.addEventListener('click', (event) => {
     }
 });
 
-// Escuta por atualizacoes em tempo real na colecao "tarefas".
-onSnapshot(collection(db, "tarefas"), (snapshot) => {
+const q = query(tasksCollection, orderBy("order"));
+onSnapshot(q, (snapshot) => {
     const tasks = [];
     snapshot.forEach((doc) => {
         tasks.push({ id: doc.id, ...doc.data() });
     });
-    tasks.sort((a, b) => a.createdAt.toDate() - b.createdAt.toDate());
     renderTasks(tasks);
 });
+
+initializeSortable();

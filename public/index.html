@@ -22,7 +22,10 @@
 
     <div id="notification-container"></div>
 
-    <!-- Importa a configuracao primeiro -->
+    <!-- Adiciona a biblioteca SortableJS ANTES dos outros scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+
+    <!-- Importa a configuracao e o app.js DEPOIS -->
     <script type="module" src="config.js"></script> 
     <script type="module" src="app.js"></script>
 </body>

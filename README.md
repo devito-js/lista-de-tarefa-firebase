@@ -2,13 +2,15 @@
 
 ## 📖 Descrição
 
-Esta é uma aplicação web simples de "Lista de Tarefas" (To-Do List) desenvolvida com HTML, CSS e JavaScript puros. A aplicação utiliza o Google Firebase (Firestore) como banco de dados em tempo real, permitindo que as tarefas sejam sincronizadas instantaneamente.
+Esta é uma aplicação web simples de "Lista de Tarefas" (To-Do List) desenvolvida com HTML, CSS e JavaScript puros. A aplicação utiliza o Google Firebase (Firestore) como banco de dados em tempo real, permitindo que as tarefas sejam sincronizadas e ordenadas instantaneamente.
 
-A interface é limpa, moderna e responsiva, e o aplicativo fornece feedback ao usuário por meio de notificações para cada ação (criar, editar, excluir).
+A interface é limpa, moderna e responsiva, e o aplicativo fornece feedback ao usuário por meio de notificações para cada ação (criar, editar, excluir, reordenar).
 
 ## ✨ Funcionalidades
 
 - **CRUD Completo:** Crie, Leia, Atualize e Exclua tarefas.
+- **Arrastar e Soltar (Drag and Drop):** Reordene as tarefas facilmente arrastando-as para a posição desejada.
+- **Persistência da Ordem:** A ordem das tarefas é salva no Firestore.
 - **Sincronização em Tempo Real:** As alterações são refletidas instantaneamente com o Firebase Firestore.
 - **Interface Intuitiva:** Design moderno com ícones (Font Awesome) para facilitar a interação.
 - **Notificações Visuais:** O usuário é notificado sobre cada tarefa criada, editada ou excluída.
@@ -21,6 +23,7 @@ A interface é limpa, moderna e responsiva, e o aplicativo fornece feedback ao u
 - **JavaScript (ES Modules):** Lógica da aplicação e manipulação do DOM.
 - **Google Firebase:**
     - **Firestore:** Banco de dados NoSQL para armazenar as tarefas.
+- **SortableJS:** Biblioteca para funcionalidade de arrastar e soltar.
 - **Font Awesome:** Biblioteca de ícones.
 - **Google Fonts:** Para a tipografia (Roboto).
 
@@ -66,6 +69,7 @@ Para executar este projeto localmente, siga os passos abaixo:
 ```
 /
 ├── .gitignore         # Ignora arquivos que não devem ir para o Git (como config.js)
+├── README.md          # Este arquivo
 └── public/
     ├── app.js             # Lógica JavaScript da aplicação
     ├── config.js          # (Ignorado pelo Git) Suas credenciais do Firebase
