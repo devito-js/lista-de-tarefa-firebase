@@ -1,30 +1,127 @@
+/* --- Estilos Globais e de Login --- */
 body {
     font-family: 'Roboto', sans-serif;
-    background-color: #f4f7f9;
+    background-color: #eef1f5; /* Fundo cinza padrão para o login */
     color: #333;
     display: flex;
     justify-content: center;
-    align-items: flex-start;
+    align-items: flex-start; /* Alinha no topo para a lista de tarefas */
     min-height: 100vh;
     padding-top: 50px;
     margin: 0;
-    overflow-x: hidden; 
+    transition: background-color 0.5s ease;
 }
 
+main#app-container {
+    width: 100%;
+    max-width: 550px;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.card {
+    background-color: #ffffff;
+    padding: 30px 40px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    width: 100%;
+    max-width: 400px; /* Limita a largura da caixa de login */
+    margin: 0 auto; /* Centraliza a caixa de login */
+}
+
+.input-group {
+    text-align: left;
+    margin-bottom: 20px;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 700;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #dfe6e9;
+    border-radius: 8px;
+    font-size: 1rem;
+    box-sizing: border-box;
+}
+
+#login-btn {
+    width: 100%;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 15px;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#login-btn:hover {
+    background-color: #2980b9;
+}
+
+.error {
+    color: #c0392b;
+    margin-top: 15px;
+    font-weight: 700;
+    height: 20px;
+}
+
+.hidden {
+    display: none;
+}
+
+/* --- Estilos da Aplicação de Tarefas --- */
 .container {
     background-color: #ffffff;
     padding: 35px;
     border-radius: 15px;
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
     width: 100%;
-    max-width: 550px;
-    box-sizing: border-box;
+}
+
+.app-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 0 10px;
+}
+
+#welcome-user {
+    font-size: 1.5rem;
+    color: #2c3e50;
+    font-weight: 700;
+    margin: 0;
+}
+
+#logout-btn {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#logout-btn:hover {
+    background-color: #c0392b;
 }
 
 h1 {
     color: #2c3e50;
     font-size: 2rem;
     text-align: center;
+    margin-top: 0; /* Ajuste para o novo header */
     margin-bottom: 30px;
     font-weight: 700;
 }
@@ -64,11 +161,6 @@ h1 {
 
 #add-task-btn:hover {
     background-color: #2980b9;
-    transform: translateY(-2px);
-}
-
-#add-task-btn:active {
-    transform: translateY(0);
 }
 
 ul {
@@ -80,20 +172,14 @@ ul {
 li {
     display: flex;
     align-items: center;
-    justify-content: space-between;
     padding: 15px;
     border-bottom: 1px solid #dfe6e9;
     font-size: 1.1rem;
-    transition: background-color 0.2s, opacity 0.2s;
-    /* Remove o cursor de arrastar do item inteiro */
+    transition: background-color 0.2s;
 }
 
 li:first-child {
     border-top: 1px solid #dfe6e9;
-}
-
-li:hover {
-    background-color: #f9fafb;
 }
 
 li.dragging {
@@ -105,16 +191,11 @@ li.dragging {
     cursor: grab;
     color: #bdc3c7;
     font-size: 1.2rem;
-    margin-right: 15px; /* Espaçamento entre a alça e o texto */
-    transition: color 0.3s;
+    margin-right: 15px;
 }
 
 .drag-handle:hover {
     color: #7f8c8d;
-}
-
-li.dragging .drag-handle {
-    cursor: grabbing;
 }
 
 li span {
@@ -142,37 +223,16 @@ li .edit-input {
     cursor: pointer;
     font-size: 1.2rem;
     padding: 5px;
+    color: #7f8c8d;
     transition: color 0.3s;
 }
 
-.edit-btn {
-    color: #7f8c8d;
-}
+.edit-btn:hover { color: #2980b9; }
+.delete-btn:hover { color: #c0392b; }
+.save-btn { color: #27ae60; }
+.save-btn:hover { color: #229954; }
 
-.edit-btn:hover {
-    color: #2980b9;
-}
-
-.delete-btn {
-    color: #7f8c8d;
-}
-
-.delete-btn:hover {
-    color: #c0392b;
-}
-
-.save-btn {
-    color: #27ae60;
-}
-
-.save-btn:hover {
-    color: #229954;
-}
-
-.hidden {
-    display: none;
-}
-
+/* --- Estilos de Notificação --- */
 #notification-container {
     position: fixed;
     bottom: 20px;
@@ -199,14 +259,6 @@ li .edit-input {
     transform: translateX(0);
 }
 
-.notification.success {
-    background-color: #27ae60;
-}
-
-.notification.info {
-    background-color: #2980b9;
-}
-
-.notification.danger {
-    background-color: #c0392b;
-}
+.notification.success { background-color: #27ae60; }
+.notification.info { background-color: #2980b9; }
+.notification.danger { background-color: #c0392b; }
