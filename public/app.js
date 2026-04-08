@@ -14,7 +14,7 @@ import {
     collection, 
     doc,
     getDoc,
-    getDocs, // Adicionado para contagem
+    getDocs,
     addDoc, 
     onSnapshot,
     query,
@@ -142,7 +142,12 @@ const renderTasks = (tasks) => {
     tasks.forEach(task => {
         const li = document.createElement('li');
         li.setAttribute('data-id', task.id);
+        if (task.completed) {
+            li.classList.add('completed');
+        }
+
         li.innerHTML = `
+            <input type="checkbox" class="task-checkbox" ${task.completed ? 'checked' : ''}>
             <div class="drag-handle"><i class="fa-solid fa-grip-vertical"></i></div>
             <span>${task.text}</span>
             <input type="text" class="edit-input hidden" value="${task.text}">
@@ -160,11 +165,15 @@ addTaskBtn.addEventListener('click', async () => {
     const taskText = taskInput.value.trim();
     if (taskText && tasksCollectionRef) {
         try {
-            // Abordagem alternativa para contagem, compatível com a versão 9.6.1
             const querySnapshot = await getDocs(tasksCollectionRef);
             const count = querySnapshot.size;
 
-            await addDoc(tasksCollectionRef, { text: taskText, createdAt: new Date(), order: count });
+            await addDoc(tasksCollectionRef, { 
+                text: taskText, 
+                createdAt: new Date(), 
+                order: count, 
+                completed: false 
+            });
             taskInput.value = '';
             showNotification('Tarefa adicionada!', 'success');
         } catch (error) {
@@ -175,12 +184,26 @@ addTaskBtn.addEventListener('click', async () => {
 });
 
 taskList.addEventListener('click', (event) => {
-    const button = event.target.closest('button');
-    if (!button) return;
+    const target = event.target;
+    const li = target.closest('li');
+    if (!li) return;
 
-    const li = button.closest('li');
     const taskId = li.getAttribute('data-id');
     const taskRef = doc(tasksCollectionRef, taskId);
+
+    // Lógica do Checkbox
+    if (target.matches('.task-checkbox')) {
+        const isCompleted = target.checked;
+        updateDoc(taskRef, { completed: isCompleted }).then(() => {
+            showNotification(isCompleted ? 'Tarefa concluída!' : 'Tarefa reativada!', 'info');
+        });
+        return;
+    }
+
+    // Lógica dos Botões
+    const button = target.closest('button');
+    if (!button) return;
+    
     const span = li.querySelector('span');
     const input = li.querySelector('.edit-input');
     const editBtn = li.querySelector('.edit-btn');
