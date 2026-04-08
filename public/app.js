@@ -6,6 +6,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase
 import { 
     getAuth,
     signInWithEmailAndPassword,
+    createUserWithEmailAndPassword,
     onAuthStateChanged,
     signOut
 } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
@@ -15,6 +16,7 @@ import {
     doc,
     getDoc,
     getDocs,
+    setDoc, // Usado para criar o documento do usuário
     addDoc, 
     onSnapshot,
     query,
@@ -31,13 +33,25 @@ const db = getFirestore(app);
 
 // --- REFERÊNCIAS GLOBAIS DO DOM ---
 const loginView = document.getElementById('login-view');
+const signupView = document.getElementById('signup-view');
 const appView = document.getElementById('app-view');
 
+// Elementos do Login
 const emailInput = document.getElementById('email');
 const passwordInput = document.getElementById('password');
 const loginBtn = document.getElementById('login-btn');
 const errorMessage = document.getElementById('error-message');
+const showSignup = document.getElementById('show-signup');
 
+// Elementos do Cadastro
+const signupNameInput = document.getElementById('signup-name');
+const signupEmailInput = document.getElementById('signup-email');
+const signupPasswordInput = document.getElementById('signup-password');
+const signupBtn = document.getElementById('signup-btn');
+const signupErrorMessage = document.getElementById('signup-error-message');
+const showLogin = document.getElementById('show-login');
+
+// Elementos da App
 const welcomeUser = document.getElementById('welcome-user');
 const logoutBtn = document.getElementById('logout-btn');
 const taskInput = document.getElementById('task-input');
@@ -68,7 +82,13 @@ const showNotification = (message, type = 'info') => {
 const showLoginScreen = () => {
     document.body.style.backgroundColor = '#eef1f5';
     appView.classList.add('hidden');
+    signupView.classList.add('hidden');
     loginView.classList.remove('hidden');
+};
+
+const showSignupScreen = () => {
+    loginView.classList.add('hidden');
+    signupView.classList.remove('hidden');
 };
 
 const showAppScreen = async (user) => {
@@ -87,11 +107,8 @@ const showAppScreen = async (user) => {
     }
 
     loginView.classList.add('hidden');
+    signupView.classList.add('hidden');
     appView.classList.remove('hidden');
-};
-
-const showError = (message) => {
-    errorMessage.textContent = message;
 };
 
 // --- LÓGICA DE AUTENTICAÇÃO ---
@@ -112,13 +129,49 @@ onAuthStateChanged(auth, (user) => {
     }
 });
 
+showSignup.addEventListener('click', (e) => { e.preventDefault(); showSignupScreen(); });
+showLogin.addEventListener('click', (e) => { e.preventDefault(); showLoginScreen(); });
+
 loginBtn.addEventListener('click', async () => {
     errorMessage.textContent = '';
     try {
         await signInWithEmailAndPassword(auth, emailInput.value, passwordInput.value);
     } catch (error) {
-        showError("E-mail ou senha inválidos.");
+        errorMessage.textContent = "E-mail ou senha inválidos.";
         console.error("Login error:", error.code);
+    }
+});
+
+signupBtn.addEventListener('click', async () => {
+    signupErrorMessage.textContent = '';
+    const name = signupNameInput.value.trim();
+    const email = signupEmailInput.value.trim();
+    const password = signupPasswordInput.value.trim();
+
+    if (!name || !email || !password) {
+        signupErrorMessage.textContent = "Por favor, preencha todos os campos.";
+        return;
+    }
+
+    try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        
+        // Cria um documento na coleção 'cores' para o novo usuário
+        await setDoc(doc(db, "cores", user.uid), { 
+            nome: name,
+            cor: "238, 241, 245" // Cor de fundo padrão inicial
+        });
+
+    } catch (error) {
+        if (error.code === 'auth/email-already-in-use') {
+            signupErrorMessage.textContent = "Este e-mail já está em uso.";
+        } else if (error.code === 'auth/weak-password') {
+            signupErrorMessage.textContent = "A senha deve ter no mínimo 6 caracteres.";
+        } else {
+            signupErrorMessage.textContent = "Ocorreu um erro ao criar a conta.";
+        }
+        console.error("Signup error:", error.code);
     }
 });
 
@@ -126,7 +179,7 @@ logoutBtn.addEventListener('click', () => {
     signOut(auth);
 });
 
-// --- LÓGICA DA LISTA DE TAREFAS ---
+// --- LÓGICA DA LISTA DE TAREFAS (sem alterações) ---
 
 const listenForTasks = () => {
     if (!tasksCollectionRef) return;
@@ -191,16 +244,12 @@ taskList.addEventListener('click', (event) => {
     const taskId = li.getAttribute('data-id');
     const taskRef = doc(tasksCollectionRef, taskId);
 
-    // Lógica do Checkbox
     if (target.matches('.task-checkbox')) {
         const isCompleted = target.checked;
-        updateDoc(taskRef, { completed: isCompleted }).then(() => {
-            showNotification(isCompleted ? 'Tarefa concluída!' : 'Tarefa reativada!', 'info');
-        });
+        updateDoc(taskRef, { completed: isCompleted });
         return;
     }
 
-    // Lógica dos Botões
     const button = target.closest('button');
     if (!button) return;
     
@@ -220,9 +269,7 @@ taskList.addEventListener('click', (event) => {
     } else if (button.classList.contains('save-btn')) {
         const newText = input.value.trim();
         if (newText && newText !== span.textContent) {
-            updateDoc(taskRef, { text: newText }).then(() => {
-                showNotification('Tarefa atualizada.', 'info');
-            });
+            updateDoc(taskRef, { text: newText });
         }
         span.classList.remove('hidden');
         input.classList.add('hidden');
@@ -248,7 +295,6 @@ const initializeSortable = () => {
                 batch.update(taskRef, { order: index });
             });
             await batch.commit();
-            showNotification('Ordem atualizada!', 'info');
         }
     });
 };

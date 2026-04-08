@@ -1,7 +1,7 @@
 /* --- Estilos Globais e de Login --- */
 body {
     font-family: 'Roboto', sans-serif;
-    background-color: #eef1f5; /* Fundo cinza padrão para o login */
+    background-color: #eef1f5;
     color: #333;
     display: flex;
     justify-content: center;
@@ -50,7 +50,7 @@ main#app-container {
     box-sizing: border-box;
 }
 
-#login-btn, #add-task-btn {
+#login-btn, #add-task-btn, #signup-btn {
     width: 100%;
     background-color: #3498db;
     color: white;
@@ -62,7 +62,7 @@ main#app-container {
     transition: background-color 0.3s;
 }
 
-#login-btn:hover, #add-task-btn:hover {
+#login-btn:hover, #add-task-btn:hover, #signup-btn:hover {
     background-color: #2980b9;
 }
 
@@ -71,6 +71,18 @@ main#app-container {
     margin-top: 15px;
     font-weight: 700;
     height: 20px;
+}
+
+.toggle-link {
+    margin-top: 20px;
+    font-size: 0.9rem;
+    color: #555;
+}
+
+.toggle-link a {
+    color: #3498db;
+    font-weight: 700;
+    text-decoration: none;
 }
 
 .hidden {
